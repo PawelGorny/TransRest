@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                      http://www.springframework.org/schema/beans/spring-beans.xsd
+                      http://www.springframework.org/schema/tx
+                      http://www.springframework.org/schema/tx/spring-tx.xsd
+                      http://www.springframework.org/schema/data/jpa
+                      http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+                      http://www.springframework.org/schema/jdbc
+                      http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+                      http://www.springframework.org/schema/context
+                      http://www.springframework.org/schema/context/spring-context.xsd
+                      http://www.springframework.org/schema/aop
+                      http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:annotation-config/>
+
+    <context:component-scan base-package="com.pawelgorny.transrest.service, com.pawelgorny.transrest.dao"/>
+
+    <tx:annotation-driven transaction-manager="transactionManager" mode="proxy" proxy-target-class="false"/>
+
+    <aop:aspectj-autoproxy/>
+
+    <bean id="txService" class="com.atomikos.icatch.config.UserTransactionServiceImp"
+          init-method="init" destroy-method="shutdownWait">
+    </bean>
+
+    <bean id="txManager" class="com.atomikos.icatch.jta.J2eeTransactionManager" depends-on="txService"/>
+
+    <bean id="userTx" class="com.atomikos.icatch.jta.J2eeUserTransaction" depends-on="txService"/>
+
+    <bean id="transactionManager"
+          class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="userTransaction" ref="userTx"></property>
+        <property name="transactionManager" ref="txManager"></property>
+    </bean>
+
+
+    <bean id="dataSource" class="com.atomikos.jdbc.AtomikosDataSourceBean"
+          destroy-method="close" init-method="init" depends-on="txService">
+        <property name="uniqueResourceName" value="atomikos-j2ee"/>
+        <property name="maxPoolSize" value="10"/>
+        <property name="minPoolSize" value="5"/>
+        <property name="xaDataSource" ref="xaReferent"/>
+    </bean>
+
+    <bean id="xaReferent" class="org.h2.jdbcx.JdbcDataSource">
+        <property name="URL" value="jdbc:h2:~/test-db;MODE=PostgreSQL;MVCC=TRUE;DB_CLOSE_DELAY=-1"/>
+        <property name="user" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean
+            class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>
+
+    <bean
+            class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="database" value="H2"/>
+            </bean>
+        </property>
+        <property name="packagesToScan" value="com.pawelgorny.transrest.model"/>
+        <property name="jtaDataSource" ref="dataSource"/>
+        <property name="jpaPropertyMap">
+            <props>
+                <prop key="hibernate.current_session_context_class">jta</prop>
+                <prop key="javax.persistence.transactionType">jta</prop>
+                <prop key="hibernate.transaction.jta.platform">com.atomikos.icatch.jta.hibernate4.AtomikosJ2eePlatform
+                </prop>
+                <prop key="hibernate.hbm2ddl.auto">create</prop>
+                <prop key="hibernate.search.autoregister_listeners">false</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">false</prop>
+                <prop key="hibernate.jdbc.use_streams_for_binary">true</prop>
+            </props>
+        </property>
+    </bean>
+
+    <jpa:repositories base-package="com.pawelgorny.transrest.dao"
+                      entity-manager-factory-ref="entityManagerFactory"
+                      transaction-manager-ref="transactionManager"
+                      factory-class="com.pawelgorny.transrest.repository.NoTransactionRepositoryFactoryBean"
+            />
+
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
+    <bean id="transactionExampleApi" class="com.pawelgorny.transrest.api.TransactionApi"/>
+    <bean id="entityExampleApi" class="com.pawelgorny.transrest.api.EntityExampleApi"/>
+    <bean class="org.apache.cxf.jaxrs.JAXRSServerFactoryBean" init-method="create">
+        <property name="address" value="http://127.0.0.1:9000/"/>
+        <property name="serviceBeans">
+            <list>
+                <ref bean="transactionExampleApi"/>
+                <ref bean="entityExampleApi"/>
+            </list>
+        </property>
+        <property name="providers">
+            <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+        </property>
+    </bean>
+
+</beans>
