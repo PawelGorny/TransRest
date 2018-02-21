@@ -29,6 +29,7 @@ public class EntityExampleServiceTest extends AbstractEntityExampleTest {
     public void testSimple() {
         EntityExample entityExample = getEntityExample();
         entityExample = service.create(entityExample);
+        int chSize = entityExample.getChildren().size();
         Assert.assertNotNull(entityExample.getId());
         entityExample.setValue("Value2");
         entityExample = service.update(entityExample);
@@ -37,10 +38,12 @@ public class EntityExampleServiceTest extends AbstractEntityExampleTest {
         List<EntityExample> list = service.findAll();
         Assert.assertEquals(1, list.size());
         entityExample = list.get(0);
+        Assert.assertEquals(chSize, entityExample.getChildren().size());
         Assert.assertTrue("Value2".equals(entityExample.getValue()));
         Long id = entityExample.getId();
         entityExample = service.findById(id);
         Assert.assertTrue(id.equals(entityExample.getId()));
+        Assert.assertEquals(chSize, entityExample.getChildren().size());
         service.delete(entityExample);
         list = service.findAll();
         Assert.assertTrue(list.isEmpty());

@@ -65,9 +65,9 @@ public class EntityExampleServiceImpl implements EntityExampleService {
     public List<EntityExample> findAll() {
         LOGGER.debug("findAll EntityExample ");
         List<EntityExample> result = dao.findAll();
-        for (EntityExample entityExample : result){
-            Hibernate.initialize(entityExample.getChildren());
-        }
+//        for (EntityExample entityExample : result){
+//            Hibernate.initialize(entityExample.getChildren());
+//        }
         return result;
     }
 
@@ -75,7 +75,7 @@ public class EntityExampleServiceImpl implements EntityExampleService {
     public EntityExample createInTransaction(String transactionKey, EntityExample entityExample) throws InvalidTransactionException, SystemException {
         transactionService.set(transactionKey);
         LOGGER.debug("saving EntityExample in " + transactionKey);
-        EntityExample entityExampleSaved = dao.save(entityExample);
+        EntityExample entityExampleSaved = dao.saveAndFlushNoTransaction(entityExample);
         LOGGER.debug("EntityExample saved " + entityExampleSaved.getId());
         transactionService.free();
         return entityExampleSaved;

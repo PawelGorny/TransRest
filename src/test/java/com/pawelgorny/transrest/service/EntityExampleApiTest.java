@@ -39,7 +39,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
         String value = UUID.randomUUID().toString();
         EntityExample entityExample = create(value);
         Response response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + entityExample.getId())
+                .path("/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
@@ -67,7 +67,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
         List<EntityExample> list = mapper.readValue((InputStream) response.getEntity(), List.class);
         Assert.assertTrue(list.isEmpty());
         String value = UUID.randomUUID().toString();
-        create(value);
+        EntityExample created = create(value);
         response = WebClient.create(BASE_URL, participantProviders)
                 .path("/all")
                 .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -80,6 +80,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
         EntityExample entityExample = list.get(0);
         Assert.assertNotNull(entityExample.getId());
         Assert.assertEquals(value, entityExample.getValue());
+        Assert.assertEquals(created.getChildren().size(), entityExample.getChildren().size());
     }
 
     @Test
@@ -90,14 +91,14 @@ public class EntityExampleApiTest extends TransactionApiTest {
         EntityExample entityExample = create(value, transactionId);
 
         Response response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + entityExample.getId())
+                .path("/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
 
         response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + transactionId + "/" + entityExample.getId())
+                .path("/" + transactionId + "/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
@@ -114,7 +115,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
         Assert.assertEquals(entityExample.getId(), entityExampleResponse.getId());
 
         response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + transactionId + "/" + entityExample.getId()+1)
+                .path("/" + transactionId + "/" + entityExample.getId()+1)
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
@@ -123,7 +124,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
         commitTransaction(transactionId);
 
         response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + entityExample.getId())
+                .path("/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
@@ -148,14 +149,14 @@ public class EntityExampleApiTest extends TransactionApiTest {
         EntityExample entityExample = create(value, transactionId);
 
         Response response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + entityExample.getId())
+                .path("/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
 
         response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + transactionId + "/" + entityExample.getId())
+                .path("/" + transactionId + "/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();
@@ -174,7 +175,134 @@ public class EntityExampleApiTest extends TransactionApiTest {
         rollbackTransaction(transactionId);
 
         response = WebClient.create(BASE_URL, participantProviders)
-                .path("/find/" + entityExample.getId())
+                .path("/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testCreateDelete() throws IOException {
+        String value = UUID.randomUUID().toString();
+        EntityExample entityExample = create(value);
+
+        Response response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        ObjectMapper mapper = new ObjectMapper();
+        EntityExample entityExampleResponse = null;
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        try {
+            entityExampleResponse = mapper.readValue((InputStream) response.getEntity(), EntityExample.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertEquals(entityExample.getId(), entityExampleResponse.getId());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testCreateDeleteInTransaction() throws IOException {
+        String transactionId = createTransaction();
+        Assert.assertNotNull(transactionId);
+        String value = UUID.randomUUID().toString();
+        EntityExample entityExample = create(value, transactionId);
+
+        Response response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/"+transactionId+"/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        ObjectMapper mapper = new ObjectMapper();
+        EntityExample entityExampleResponse = null;
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        try {
+            entityExampleResponse = mapper.readValue((InputStream) response.getEntity(), EntityExample.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertEquals(entityExample.getId(), entityExampleResponse.getId());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + transactionId + "/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/"+transactionId+"/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+
+        value = UUID.randomUUID().toString();
+        entityExample = create(value);
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        mapper = new ObjectMapper();
+        entityExampleResponse = null;
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        try {
+            entityExampleResponse = mapper.readValue((InputStream) response.getEntity(), EntityExample.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertEquals(entityExample.getId(), entityExampleResponse.getId());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + transactionId + "/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/"+transactionId+"/" + entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+
+        commitTransaction(transactionId);
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/" + entityExample.getId())
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .get();

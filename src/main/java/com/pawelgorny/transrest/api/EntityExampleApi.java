@@ -34,11 +34,29 @@ public class EntityExampleApi {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @GET
-    @Path("/find/{id}")
+    @Path("/{id}")
     public Response find(@PathParam("id") String id) {
         EntityExample result = service.findById(Long.valueOf(id));
         if (result!=null){
             return Response.ok(result).build();
+        }
+        return Response.noContent().build();
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @DELETE
+    @Path("/{id}")
+    public Response delete(@PathParam("id") String id) {
+        EntityExample result = service.findById(Long.valueOf(id));
+        if (result!=null){
+            try {
+                service.delete(result);
+                return Response.ok("SUCCESS").build();
+            }catch (Exception e){
+                LOGGER.error(e.getMessage(), e);
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), e.getMessage()).build();
+            }
         }
         return Response.noContent().build();
     }
@@ -71,13 +89,34 @@ public class EntityExampleApi {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @GET
-    @Path("/find/{transactionKey}/{id}")
+    @Path("/{transactionKey}/{id}")
     public Response findInTransaction(@PathParam("transactionKey") String transactionKey,
                                            @PathParam("id") String id){
         String error;
         try {
             EntityExample result = service.findByIdInTransaction(transactionKey, Long.valueOf(id));
             if (result!=null){
+                return Response.ok(result).build();
+            }
+            return Response.noContent().build();
+        }catch (InvalidTransactionException | SystemException e) {
+            LOGGER.error(e.getMessage(), e);
+            error = e.getLocalizedMessage();
+        }
+        return Response.status(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), error).build();
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @DELETE
+    @Path("/{transactionKey}/{id}")
+    public Response deleteInTransaction(@PathParam("transactionKey") String transactionKey,
+                                      @PathParam("id") String id){
+        String error;
+        try {
+            EntityExample result = service.findByIdInTransaction(transactionKey, Long.valueOf(id));
+            if (result!=null){
+                service.deleteInTransaction(transactionKey, result);
                 return Response.ok(result).build();
             }
             return Response.noContent().build();
