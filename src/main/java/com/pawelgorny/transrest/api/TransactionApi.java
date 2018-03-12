@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 import java.util.Date;
 
 @Api(value = "transaction")
-@Path("/api/transaction")
+@Path("/transaction")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Component
@@ -31,7 +31,7 @@ public class TransactionApi {
     @ApiResponses(value = {
             @ApiResponse(code = 503, message = "Error"),
             @ApiResponse(code = 201, message = "Success")})
-    @PUT
+    @POST
     @Path("/create")
     public Response create(@ApiParam(value = "Requester Id", required = true) String clientId) {
         String error;

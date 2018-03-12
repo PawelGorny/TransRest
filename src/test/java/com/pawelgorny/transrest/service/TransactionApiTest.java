@@ -31,7 +31,7 @@ public class TransactionApiTest extends AbstractEntityExampleTest {
                 .path("/create")
                 .accept(MediaType.APPLICATION_JSON)
                 .type(MediaType.APPLICATION_JSON)
-                .put(USER);
+                .post(USER);
         ObjectMapper mapper = new ObjectMapper();
         TransactionData transactionResponse = null;
         Assert.assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());

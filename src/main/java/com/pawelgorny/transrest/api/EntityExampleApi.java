@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Api(value = "entityExample")
-@Path("/api/entityExample")
+@Path("/entityExample")
 @Component
 public class EntityExampleApi {
 
@@ -28,7 +28,7 @@ public class EntityExampleApi {
     @ApiOperation(value = "Creates the entity", response = EntityExample.class)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @PUT
+    @POST
     @Path("/create")
     public EntityExample create(@ApiParam(value = "Entity to create", required = true) EntityExample entityExample) {
         return service.create(entityExample);
@@ -90,7 +90,7 @@ public class EntityExampleApi {
             @ApiResponse(code = 503, message = "Error")})
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @PUT
+    @POST
     @Path("/create/{transactionKey}")
     public Response createInTransaction(@ApiParam(value = "Transaction id", required = true) @PathParam("transactionKey") String transactionKey,
                                         @ApiParam(value = "Entity to create", required = true) EntityExample entityExample) {

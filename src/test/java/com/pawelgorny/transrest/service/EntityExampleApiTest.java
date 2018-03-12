@@ -419,7 +419,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
                 .path("/create"+(transactionId!=null?("/"+transactionId) : ""))
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .put(entityExample);
+                .post(entityExample);
         ObjectMapper mapper = new ObjectMapper();
         EntityExample entityExampleResponse = null;
         try {

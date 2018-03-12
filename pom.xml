@@ -7,6 +7,7 @@
     <groupId>com.pawelgorny</groupId>
     <artifactId>transrest</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
     <properties>
         <hibernate-version>4.3.11.Final</hibernate-version>
@@ -14,6 +15,7 @@
         <atomikos-version>4.0.6</atomikos-version>
         <cxf-version>3.2.2</cxf-version>
 
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -24,7 +26,6 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
             <version>${hibernate-version}</version>
-            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>javax.transaction</groupId>
@@ -46,6 +47,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
+            <version>${spring-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
             <version>${spring-version}</version>
         </dependency>
         <dependency>
@@ -107,7 +113,7 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>1.4.196</version>
-            <scope>test</scope>
+            <!--<scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -126,6 +132,7 @@
     </dependencies>
 
     <build>
+        <finalName>transrest</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -134,6 +141,9 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
                 </configuration>
             </plugin>
             <plugin>
@@ -144,8 +154,8 @@
                     <apiSources>
                         <apiSource>
                             <springmvc>false</springmvc>
-                            <basePath>/api</basePath>
-                            <host>127.0.0.1:9000</host>
+                            <basePath>/transrest/api</basePath>
+                            <host>127.0.0.1:8080</host>
                             <locations>
                                 com.pawelgorny.transrest.api
                             </locations>
@@ -158,8 +168,8 @@
                                     <name>Pawel Gorny</name>
                                 </contact>
                             </info>
-                            <outputPath>${basedir}/generated/document.html</outputPath>
-                            <swaggerDirectory>${basedir}/generated/swagger-ui</swaggerDirectory>
+                            <!--<outputPath>${basedir}/generated/document.html</outputPath>-->
+                            <swaggerDirectory>${project.build.directory}/transrest/apidoc</swaggerDirectory>
                             <swaggerApiReader>com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader</swaggerApiReader>
                         </apiSource>
                     </apiSources>

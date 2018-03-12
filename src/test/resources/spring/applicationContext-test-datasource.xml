@@ -97,7 +97,7 @@
     <bean id="transactionExampleApi" class="com.pawelgorny.transrest.api.TransactionApi"/>
     <bean id="entityExampleApi" class="com.pawelgorny.transrest.api.EntityExampleApi"/>
     <bean class="org.apache.cxf.jaxrs.JAXRSServerFactoryBean" init-method="create">
-        <property name="address" value="http://127.0.0.1:9000/"/>
+        <property name="address" value="http://127.0.0.1:9000/api/"/>
         <property name="serviceBeans">
             <list>
                 <ref bean="transactionExampleApi"/>
