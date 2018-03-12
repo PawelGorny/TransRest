@@ -54,7 +54,7 @@
           class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-                <property name="database" value="ORACLE"/>
+                <property name="database" value="H2"/>
             </bean>
         </property>
         <property name="packagesToScan" value="com.pawelgorny.transrest.model"/>
