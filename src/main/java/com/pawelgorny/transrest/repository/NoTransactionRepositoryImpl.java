@@ -1,7 +1,5 @@
 package com.pawelgorny.transrest.repository;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.jpa.repository.support.CrudMethodMetadata;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -16,19 +14,15 @@ public class NoTransactionRepositoryImpl<T, ID extends Serializable>
 
     private final JpaEntityInformation<T, ?> entityInformation;
     private final EntityManager entityManager;
-    private final PersistenceProvider provider;
-
-    private CrudMethodMetadata metadata;
 
     public NoTransactionRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.entityInformation = entityInformation;
         this.entityManager = entityManager;
-        this.provider = PersistenceProvider.fromEntityManager(entityManager);
     }
 
     /**
-     * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
+     * Creates a new {@link NoTransactionRepository} to manage objects of the given domain type.
      *
      * @param domainClass must not be {@literal null}.
      * @param em must not be {@literal null}.

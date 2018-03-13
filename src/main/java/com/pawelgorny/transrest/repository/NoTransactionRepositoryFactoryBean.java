@@ -14,7 +14,7 @@ public class NoTransactionRepositoryFactoryBean<R extends JpaRepository<T, I>, T
         extends JpaRepositoryFactoryBean<R, T, I> {
 
     /**
-     * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
+     * Creates a new {@link NoTransactionRepositoryFactoryBean} for the given repository interface.
      *
      * @param repositoryInterface must not be {@literal null}.
      */
@@ -48,9 +48,6 @@ public class NoTransactionRepositoryFactoryBean<R extends JpaRepository<T, I>, T
         }
 
         protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-
-            // The RepositoryMetadata can be safely ignored, it is used by the JpaRepositoryFactory
-            //to check for QueryDslJpaRepository's which is out of scope.
             return NoTransactionRepository.class;
         }
     }
