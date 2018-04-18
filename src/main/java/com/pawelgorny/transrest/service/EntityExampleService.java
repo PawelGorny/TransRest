@@ -29,5 +29,7 @@ public interface EntityExampleService {
 
     List<EntityExample> findAllInTransaction(String transactionKey) throws InvalidTransactionException, SystemException;
 
+    List<EntityExample> searchByQuery(String query);
+
 
 }

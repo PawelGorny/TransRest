@@ -1,8 +1,13 @@
 package com.pawelgorny.transrest.service;
 
+import com.github.tennaito.rsql.jpa.JpaCriteriaQueryVisitor;
 import com.pawelgorny.transrest.dao.EntityExampleChildDao;
 import com.pawelgorny.transrest.dao.EntityExampleDao;
 import com.pawelgorny.transrest.model.EntityExample;
+import com.pawelgorny.transrest.model.util.SearchQueryException;
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.Node;
+import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Hibernate;
@@ -10,8 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.transaction.InvalidTransactionException;
 import javax.transaction.SystemException;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -26,6 +34,10 @@ public class EntityExampleServiceImpl implements EntityExampleService {
     
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private EntityManager entityManager;
+
 
     @Override
     @Transactional
@@ -115,5 +127,24 @@ public class EntityExampleServiceImpl implements EntityExampleService {
         List<EntityExample> result = dao.findAll();
         transactionService.free();
         return result;
+    }
+
+    @Override
+    public List<EntityExample> searchByQuery(String queryString) {
+        RSQLVisitor<CriteriaQuery<EntityExample>, EntityManager> visitor = new JpaCriteriaQueryVisitor<>();
+        Node rootNode;
+        CriteriaQuery<EntityExample> query;
+        try {
+            rootNode = new RSQLParser().parse(queryString);
+            query = rootNode.accept(visitor, entityManager);
+        }catch (Exception e){
+            LOGGER.trace(e.getMessage(), e);
+            throw new SearchQueryException(e.getMessage());
+        }
+        List<EntityExample> resultList = entityManager.createQuery(query).getResultList();
+        if (resultList == null || resultList.isEmpty()){
+            return Collections.emptyList();
+        }
+        return resultList;
     }
 }

@@ -15,6 +15,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,6 +55,82 @@ public class EntityExampleApiTest extends TransactionApiTest {
         }
         Assert.assertEquals(entityExampleResponse.getId(), entityExample.getId());
         Assert.assertEquals(entityExampleResponse.getValue(), entityExample.getValue());
+    }
+
+    @Test
+    public void testGetByQuery() {
+        String value = UUID.randomUUID().toString();
+        EntityExample entityExample = create(value);
+        Response response = WebClient.create(BASE_URL, participantProviders)
+                .path("/")
+                .query("query", "id == "+entityExample.getId())
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertTrue(response.getStatus() == Response.Status.OK.getStatusCode());
+        ObjectMapper mapper = new ObjectMapper();
+        List<EntityExample> entityExampleResponse = null;
+        try {
+            entityExampleResponse = Arrays.asList(mapper.readValue((InputStream) response.getEntity(), EntityExample[].class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertFalse(entityExampleResponse.isEmpty());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/")
+                .query("query", "value == '"+entityExample.getValue()+"'")
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertTrue(response.getStatus() == Response.Status.OK.getStatusCode());
+        entityExampleResponse = null;
+        try {
+            entityExampleResponse = Arrays.asList(mapper.readValue((InputStream) response.getEntity(), EntityExample[].class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertFalse(entityExampleResponse.isEmpty());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/")
+                .query("query", "value == '"+entityExample.getValue().substring(0,1)+"*'")
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertTrue(response.getStatus() == Response.Status.OK.getStatusCode());
+        entityExampleResponse = null;
+        try {
+            entityExampleResponse = Arrays.asList(mapper.readValue((InputStream) response.getEntity(), EntityExample[].class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertFalse(entityExampleResponse.isEmpty());
+
+        response = WebClient.create(BASE_URL, participantProviders)
+                .path("/")
+                .query("query", "date>="+ Util.getRQLDateFormatter().format(entityExample.getDate()))
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        Assert.assertTrue(response.getStatus() == Response.Status.OK.getStatusCode());
+        entityExampleResponse = null;
+        try {
+            entityExampleResponse = Arrays.asList(mapper.readValue((InputStream) response.getEntity(), EntityExample[].class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
+        Assert.assertNotNull(entityExampleResponse);
+        Assert.assertFalse(entityExampleResponse.isEmpty());
+
+
     }
 
     @Test
@@ -411,6 +489,7 @@ public class EntityExampleApiTest extends TransactionApiTest {
     private EntityExample create(String value, String transactionId) {
         EntityExample entityExample = new EntityExample();
         entityExample.setValue(value);
+        entityExample.setDate(new Date());
 
         entityExample.addToChildren(new EntityExampleChild("1_"+entityExample.getValue()));
         entityExample.addToChildren(new EntityExampleChild("2_"+entityExample.getValue()));

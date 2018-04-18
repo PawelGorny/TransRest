@@ -5,6 +5,7 @@ import org.codehaus.jackson.annotate.JsonManagedReference;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -19,6 +20,8 @@ public class EntityExample implements Serializable {
     private Long id;
     @Column(name = "VALUE")
     private String value;
+    @Column(name = "DATE")
+    private Date date;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name="ENTITY_EXAMPLE_ID")
@@ -47,6 +50,14 @@ public class EntityExample implements Serializable {
 
     public void setChildren(List<EntityExampleChild> children) {
         this.children = children;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
     public void addToChildren(EntityExampleChild child) {

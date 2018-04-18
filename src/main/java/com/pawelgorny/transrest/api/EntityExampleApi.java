@@ -50,6 +50,22 @@ public class EntityExampleApi {
         return Response.noContent().build();
     }
 
+    @ApiOperation(value = "Finds entities by RSQL query",
+            response = EntityExample.class, responseContainer = "list")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Entity not found") })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/")
+    public Response findByQuery(@ApiParam(value = "Query", required = true) @QueryParam("query") String query) {
+        List<EntityExample> result = service.searchByQuery(query);
+        if (result!=null){
+            return Response.ok(result).build();
+        }
+        return Response.noContent().build();
+    }
+
     @ApiOperation(value = "Deletes entity by id")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Entity deleted"),

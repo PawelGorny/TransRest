@@ -2,11 +2,13 @@ package com.pawelgorny.transrest.service;
 
 import com.pawelgorny.transrest.model.EntityExample;
 import com.pawelgorny.transrest.model.EntityExampleChild;
+import com.pawelgorny.transrest.model.util.SearchQueryException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.*;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +21,7 @@ public class EntityExampleServiceTest extends AbstractEntityExampleTest {
     private EntityExample getEntityExample(){
         EntityExample entityExample = new EntityExample();
         entityExample.setValue(UUID.randomUUID().toString());
-
+        entityExample.setDate(new Date());
         entityExample.addToChildren(new EntityExampleChild("1_"+entityExample.getValue()));
         entityExample.addToChildren(new EntityExampleChild("2_"+entityExample.getValue()));
         return entityExample;
@@ -47,6 +49,40 @@ public class EntityExampleServiceTest extends AbstractEntityExampleTest {
         service.delete(entityExample);
         list = service.findAll();
         Assert.assertTrue(list.isEmpty());
+    }
+
+
+
+    @Test
+    public void testQuery(){
+        EntityExample entityExample = getEntityExample();
+        entityExample = service.create(entityExample);
+        List<EntityExample> list = service.searchByQuery("id == "+entityExample.getId());
+        Assert.assertNotNull(list);
+        Assert.assertFalse(list.isEmpty());
+        list = service.searchByQuery("value == '"+entityExample.getValue()+"'");
+        Assert.assertNotNull(list);
+        Assert.assertFalse(list.isEmpty());
+        list = service.searchByQuery("value == '"+entityExample.getValue().substring(0,1)+"*'");
+        Assert.assertNotNull(list);
+        Assert.assertFalse(list.isEmpty());
+        list = service.searchByQuery("date>="+ Util.getRQLDateFormatter().format(entityExample.getDate()));
+        Assert.assertNotNull(list);
+        Assert.assertFalse(list.isEmpty());
+        list = service.searchByQuery("date<"+ Util.getRQLDateFormatter().format(entityExample.getDate()));
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.isEmpty());
+        list = service.searchByQuery("value == 'notValid'");
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.isEmpty());
+    }
+    @Test(expected = SearchQueryException.class)
+    public void testQueryException1(){
+        service.searchByQuery("id = 1");
+    }
+    @Test(expected = SearchQueryException.class)
+    public void testQueryException2(){
+        service.searchByQuery("unknownProperty == 1");
     }
 
     @Test
@@ -243,7 +279,6 @@ public class EntityExampleServiceTest extends AbstractEntityExampleTest {
             Assert.assertNull(e);
         }
     }
-
 
     @Test(expected = InvalidTransactionException.class)
     public void testException1() throws InvalidTransactionException, SystemException {
